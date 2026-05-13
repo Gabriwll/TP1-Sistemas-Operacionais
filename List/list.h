@@ -22,12 +22,16 @@ typedef struct Cell{
     type item;
 }Cell;
 
-void initializeList(List* list);
+List initializeList();
 Cell* initializeCell(type item);
+
+Cell* getCell(List* list, type target);
+
 void append(List* list, type item);
 int editContent(List* list, type target, type value);
-int removeCell(List* list, Cell target);
-Cell* getCell(List* list, type target);
+int removeCell(List* list, Cell* target);
+void destroyList(List* list);
+
 void printCell(Cell cell);
 void printList(List list);
 
