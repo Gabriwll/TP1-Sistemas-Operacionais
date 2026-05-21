@@ -1,3 +1,7 @@
+
+
+//EU NÃO LEMBRAVA QUE TINHA ISSO AQUI, FCK
+
 #ifndef PROCESS_H
 #define PROCESS_H
 
