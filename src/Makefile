@@ -7,6 +7,7 @@ SRC = \
     input/input.c \
     input/parser.c \
     process/process.c \
+    process/executor.c \
     process/cpu.c \
     process/queue.c
 
