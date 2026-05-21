@@ -1,14 +1,13 @@
 #include "./list.h"
 
-List initializeList(){
-    List* list = (List*)malloc(sizeof(List));
+List initializeList() {
+    List list;
 
-    list->begin = NULL;
-    list->last = NULL;
+    list.begin = NULL;
+    list.last = NULL;
+    list.size = 0;
 
-    list->size = 0;
-
-    return *list;
+    return list;
 }
 
 Cell* initializeCell(type item){
@@ -23,11 +22,7 @@ Cell* initializeCell(type item){
 Cell* getCell(List* list, type target){
     Cell* currentCell = list->begin;
 
-    while(currentCell->item != target){
-        if(!currentCell->next){
-            return 0; //Cell not found
-        }
-
+    while(currentCell && currentCell->item != target){
         currentCell = currentCell->next;
     }
 
@@ -51,18 +46,17 @@ void append(List* list, type item){
 
 int editContent(List* list, type target, type value){
     Cell* currentCell = list->begin;
-    
-    while(currentCell->item != target){
-        if(!currentCell->next){
-            return 0; //Cell not found
-        }
-        
+
+    while(currentCell && currentCell->item != target){
         currentCell = currentCell->next;
     }
 
+    if(!currentCell)
+        return 0;
+
     currentCell->item = value;
-    
-    return 1; //Cell removed
+
+    return 1;
 }
 
 int removeCell(List* list, Cell* target){
@@ -71,7 +65,7 @@ int removeCell(List* list, Cell* target){
 
     if(!list->begin) return 0; //Empty list
 
-    while(currentCell != target && currentCell){        
+    while(currentCell && currentCell != target){        
         previousCell = currentCell;
         currentCell = currentCell->next;
     }
@@ -93,14 +87,13 @@ int removeCell(List* list, Cell* target){
     return 1;
 }
 
-void destroyList(List* list){ //Not validated
-    if(!list) return;
+void destroyList(List* list){
+    if(!list)
+        return;
 
-    for(int i = 0; i < list->size; i++){
+    while(list->begin){
         removeCell(list, list->begin);
     }
-
-    free(list);
 }
 
 void printCell(Cell cell){

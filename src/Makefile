@@ -2,9 +2,9 @@ CC = gcc
 CFLAGS = -Wall -Wextra
 
 SRC = \
-    main.c \
-    input/parser.c \
-    input/input.c
+    src/main.c \
+    src/input/parser.c \
+    src/input/input.c
 
 TARGET = simulator
 

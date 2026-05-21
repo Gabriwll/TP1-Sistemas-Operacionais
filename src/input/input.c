@@ -1,5 +1,5 @@
 #include <stdio.h>
-
+#include <unistd.h>
 #include "input.h"
 
 static int is_valid_command(char c) {
