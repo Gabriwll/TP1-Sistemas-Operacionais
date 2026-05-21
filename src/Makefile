@@ -1,12 +1,14 @@
 CC = gcc
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -g
+TARGET = simulator
 
 SRC = \
-    src/main.c \
-    src/input/parser.c \
-    src/input/input.c
-
-TARGET = simulator
+    main.c \
+    input/input.c \
+    input/parser.c \
+    process/process.c \
+    process/cpu.c \
+    process/queue.c
 
 all:
 	$(CC) $(SRC) $(CFLAGS) -o $(TARGET)
@@ -16,3 +18,7 @@ run:
 
 clean:
 	rm -f $(TARGET)
+
+clean-all:
+	rm -f $(TARGET)
+	find . -name "*.o" -delete

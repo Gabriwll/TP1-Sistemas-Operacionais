@@ -11,7 +11,7 @@ static Instruction parse_line(const char *line) {
     char op;
     
     if (sscanf(line, " %c", &op) != 1) {
-        fprintf(stderr, "Erro ao ler instrucao: %s\n", line);
+        fprintf(stderr, "Erro ao ler instrução: %s\n", line);
         exit(EXIT_FAILURE);
     }
     
@@ -19,7 +19,7 @@ static Instruction parse_line(const char *line) {
         case 'N':
             inst.type = INST_N;
             if (sscanf(line, "N %d", &inst.arg1) != 1) {
-                fprintf(stderr, "Erro na instrucao N\n");
+                fprintf(stderr, "Erro na instrução N\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -27,7 +27,7 @@ static Instruction parse_line(const char *line) {
         case 'D':
             inst.type = INST_D;
             if (sscanf(line, "D %d", &inst.arg1) != 1) {
-                fprintf(stderr, "Erro na instrucao D\n");
+                fprintf(stderr, "Erro na instrução D\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -35,7 +35,7 @@ static Instruction parse_line(const char *line) {
         case 'V':
             inst.type = INST_V;
             if (sscanf(line, "V %d %d", &inst.arg1, &inst.arg2) != 2) {
-                fprintf(stderr, "Erro na instrucao V\n");
+                fprintf(stderr, "Erro na instrução V\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -43,7 +43,7 @@ static Instruction parse_line(const char *line) {
         case 'A':
             inst.type = INST_A;
             if (sscanf(line, "A %d %d", &inst.arg1, &inst.arg2) != 2) {
-                fprintf(stderr, "Erro na instrucao A\n");
+                fprintf(stderr, "Erro na instrução A\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -51,7 +51,7 @@ static Instruction parse_line(const char *line) {
         case 'S':
             inst.type = INST_S;
             if (sscanf(line, "S %d %d", &inst.arg1, &inst.arg2) != 2) {
-                fprintf(stderr, "Erro na instrucao S\n");
+                fprintf(stderr, "Erro na instrução S\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -59,7 +59,7 @@ static Instruction parse_line(const char *line) {
         case 'B':
             inst.type = INST_B;
             if (sscanf(line, "B %d", &inst.arg1) != 1) {
-                fprintf(stderr, "Erro na instrucao B\n");
+                fprintf(stderr, "Erro na instrução B\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -71,7 +71,7 @@ static Instruction parse_line(const char *line) {
         case 'F':
             inst.type = INST_F;
             if (sscanf(line, "F %d", &inst.arg1) != 1) {
-                fprintf(stderr, "Erro na instrucao F\n");
+                fprintf(stderr, "Erro na instrução F\n");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -79,13 +79,13 @@ static Instruction parse_line(const char *line) {
         case 'R':
             inst.type = INST_R;
             if (sscanf(line, "R %127s", inst.filename) != 1) {
-                fprintf(stderr, "Erro na instrucao R\n");
+                fprintf(stderr, "Erro na instrução R\n");
                 exit(EXIT_FAILURE);
             }
             break;
             
         default:
-            fprintf(stderr, "instrucao invalida: %c\n", op);
+            fprintf(stderr, "Instrução inválida: %c\n", op);
             exit(EXIT_FAILURE);
     }
     
@@ -110,6 +110,7 @@ Program *load_program(const char *filename) {
     
     program->instructions = NULL;
     program->size = 0;
+    program->refcount = 1;        // inicializa contador de referências
     
     char line[MAX_LINE];
     
@@ -142,6 +143,7 @@ Program *load_program(const char *filename) {
 void free_program(Program *program) {
     if (!program)
         return;
+    
     free(program->instructions);
     free(program);
 }
@@ -150,42 +152,30 @@ void print_program(Program *program) {
     if (!program)
         return;
     
-    printf("Programa possui %d instrucoes\n", program->size);
+    printf("Programa possui %d instrucoes (refcount=%d)\n", program->size, program->refcount);
     
     for (int i = 0; i < program->size; i++) {
         Instruction *inst = &program->instructions[i];
         printf("[%d] ", i);
         
         switch (inst->type) {
-            case INST_N:
-                printf("N %d", inst->arg1);
-                break;
-            case INST_D:
-                printf("D %d", inst->arg1);
-                break;
-            case INST_V:
-                printf("V %d %d", inst->arg1, inst->arg2);
-                break;
-            case INST_A:
-                printf("A %d %d", inst->arg1, inst->arg2);
-                break;
-            case INST_S:
-                printf("S %d %d", inst->arg1, inst->arg2);
-                break;
-            case INST_B:
-                printf("B %d", inst->arg1);
-                break;
-            case INST_T:
-                printf("T");
-                break;
-            case INST_F:
-                printf("F %d", inst->arg1);
-                break;
-            case INST_R:
-                printf("R %s", inst->filename);
-                break;
+            case INST_N: printf("N %d", inst->arg1); break;
+            case INST_D: printf("D %d", inst->arg1); break;
+            case INST_V: printf("V %d %d", inst->arg1, inst->arg2); break;
+            case INST_A: printf("A %d %d", inst->arg1, inst->arg2); break;
+            case INST_S: printf("S %d %d", inst->arg1, inst->arg2); break;
+            case INST_B: printf("B %d", inst->arg1); break;
+            case INST_T: printf("T"); break;
+            case INST_F: printf("F %d", inst->arg1); break;
+            case INST_R: printf("R %s", inst->filename); break;
         }
         
         printf("\n");
+    }
+}
+
+void increment_program_refcount(Program *program) {
+    if (program) {
+        program->refcount++;
     }
 }

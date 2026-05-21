@@ -18,20 +18,20 @@ typedef enum {
 
 typedef struct {
     InstructionType type;
-
     int arg1;
     int arg2;
-
     char filename[MAX_FILENAME];
 } Instruction;
 
 typedef struct {
     Instruction *instructions;
     int size;
+    int refcount;              // contador de referências (para compartilhamento no F)
 } Program;
 
 Program *load_program(const char *filename);
 void free_program(Program *program);
 void print_program(Program *program);
+void increment_program_refcount(Program *program);
 
 #endif
