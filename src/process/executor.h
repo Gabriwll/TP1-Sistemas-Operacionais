@@ -17,5 +17,6 @@ ExecutionResult execute_next_instruction(CPU *cpu,
                                          Queue *ready_queue,
                                          Queue *blocked_queue,
                                          int current_time);
+void move_unblocked_processes(Queue *blocked_queue, Queue *ready_queue, int current_time);
 
 #endif
