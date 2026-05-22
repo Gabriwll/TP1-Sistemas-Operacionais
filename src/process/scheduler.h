@@ -11,6 +11,7 @@ typedef struct{
 void initialize_scheduler(Scheduler *scheduler);
 void schedule_process(Scheduler *scheduler, PCB *process);
 void scheduler_tick(Scheduler *scheduler, CPU *cpu);
+void block_current_process(Scheduler *scheduler, CPU *cpu);
 void destroy_scheduler(Scheduler *scheduler);
 
 #endif
