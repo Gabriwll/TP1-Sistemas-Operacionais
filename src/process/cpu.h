@@ -12,6 +12,7 @@ void initialize_cpu(CPU *cpu);
 void load_process_into_cpu(CPU *cpu, PCB *process);
 void save_cpu_state(CPU *cpu);
 void clear_cpu(CPU *cpu);
+void execute_context_switch(CPU *cpu, PCB *nextProcess, ProcessState reasonState);
 
 // Macros auxiliares para acessar "registradores" via CPU
 #define CPU_GET_PC(cpu) ((cpu)->current_process ? (cpu)->current_process->pc : -1)

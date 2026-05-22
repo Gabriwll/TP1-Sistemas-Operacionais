@@ -36,3 +36,26 @@ void clear_cpu(CPU *cpu) {
         cpu->current_process = NULL;
     }
 }
+
+void execute_context_switch(CPU *cpu, PCB *nextProcess, ProcessState reasonState){
+    // Função independente para utilização de troca de contexto para o escalonador
+
+    if(cpu == NULL)
+        return;
+    
+    // Salvar estado do processo atual
+    if(cpu->current_process != NULL){
+        cpu->current_process->quantum_used = 0;
+
+        // Modifica estado para motivo determinado pelo escalonador (Ready OU Blocked)
+        cpu->current_process->state = reasonState;
+
+        cpu->current_process = NULL;
+    }
+
+    // Copia estado do escalonado para cpu
+    if(nextProcess != NULL){
+        cpu->current_process = nextProcess;
+        nextProcess->state = RUNNING;
+    }
+}
