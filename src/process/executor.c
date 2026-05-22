@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "executor.h"
 
@@ -72,6 +73,73 @@ static ExecutionResult execute_instruction_n(PCB *process, int size) {
 
     process->memory_size = size;
     process->pc++;
+    return EXEC_OK;
+}
+
+static ExecutionResult replace_process_program(PCB *process, const char *filename) {
+    Program *new_program = load_program(filename);
+    if (!new_program) {
+        return EXEC_ERROR;
+    }
+
+    if (process->program) {
+        process->program->refcount--;
+        if (process->program->refcount == 0) {
+            free_program(process->program);
+        }
+    }
+
+    free(process->memory);
+    process->memory = NULL;
+    process->memory_size = 0;
+    process->program = new_program;
+    process->pc = 0;
+
+    return EXEC_OK;
+}
+
+static ExecutionResult fork_simulated_process(PCB *parent,
+                                              ProcessTable *table,
+                                              Queue *ready_queue,
+                                              int current_time,
+                                              int jump) {
+    int child_pid = allocate_pid(table);
+    if (child_pid < 0) {
+        fprintf(stderr, "Limite de processos atingido\n");
+        return EXEC_ERROR;
+    }
+
+    increment_program_refcount(parent->program);
+    PCB *child = create_process(child_pid, parent->pid, parent->program, current_time);
+    if (!child) {
+        free_pid(table, child_pid);
+        return EXEC_ERROR;
+    }
+
+    // O filho continua logo depois do F; o pai pula o trecho indicado.
+    child->pc = parent->pc + 1;
+    child->priority = parent->priority;
+    child->memory_size = parent->memory_size;
+
+    if (parent->memory_size > 0) {
+        child->memory = malloc(sizeof(int) * (size_t)parent->memory_size);
+        if (!child->memory) {
+            destroy_process(child, 1);
+            free_pid(table, child_pid);
+            return EXEC_ERROR;
+        }
+        memcpy(child->memory, parent->memory, sizeof(int) * (size_t)parent->memory_size);
+    }
+
+    if (!add_process(table, child)) {
+        destroy_process(child, 1);
+        free_pid(table, child_pid);
+        return EXEC_ERROR;
+    }
+
+    enqueue(ready_queue, child);
+    parent->pc = parent->pc + 1 + jump;
+
     return EXEC_OK;
 }
 
@@ -162,6 +230,13 @@ ExecutionResult execute_next_instruction(CPU *cpu,
             dispatch_next_ready(cpu, ready_queue);
             return EXEC_TERMINATED;
         }
+
+        case INST_F:
+            return fork_simulated_process(process, table, ready_queue, current_time, inst.arg1);
+
+        case INST_R:
+            // Troca o programa do processo, mas mantem pid/ppid e os tempos.
+            return replace_process_program(process, inst.filename);
 
         default:
             fprintf(stderr, "Instrucao ainda nao implementada para o processo %d\n", process->pid);
