@@ -11,11 +11,7 @@ static int ensure_memory_index(PCB *process, int index) {
 static void dispatch_next_ready(CPU *cpu, Queue *ready_queue) {
     PCB *next = dequeue(ready_queue);
 
-    if (next) {
-        load_process_into_cpu(cpu, next);
-    } else {
-        cpu->current_process = NULL;
-    }
+    execute_context_switch(cpu, next, READY);
 }
 
 void move_unblocked_processes(Queue *blocked_queue, Queue *ready_queue, int current_time) {
@@ -214,18 +210,16 @@ ExecutionResult execute_next_instruction(CPU *cpu,
         case INST_B:
             // Bloqueia o processo atual e deixa a CPU livre para o proximo pronto.
             process->pc++;
-            process->state = BLOCKED;
             process->blocked_until = current_time + inst.arg1;
-            cpu->current_process = NULL;
             enqueue(blocked_queue, process);
+            execute_context_switch(cpu, NULL, BLOCKED);
             dispatch_next_ready(cpu, ready_queue);
             return EXEC_BLOCKED;
 
         case INST_T: {
             // Processo terminou: sai da tabela e nao volta para nenhuma fila.
             int pid = process->pid;
-            process->state = TERMINATED;
-            cpu->current_process = NULL;
+            execute_context_switch(cpu, NULL, TERMINATED);
             remove_process(table, pid, 1);
             dispatch_next_ready(cpu, ready_queue);
             return EXEC_TERMINATED;
