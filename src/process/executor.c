@@ -8,13 +8,14 @@ static int ensure_memory_index(PCB *process, int index) {
     return process && index >= 0 && index < process->memory_size;
 }
 
-static void dispatch_next_ready(CPU *cpu, Queue *ready_queue) {
-    PCB *next = dequeue(ready_queue);
+static void dispatch_next_ready(CPU *cpu, Scheduler *scheduler) {
+    //PCB *next = dequeue(ready_queue);
+    PCB *next = get_next_ready_process(scheduler);
 
     execute_context_switch(cpu, next, READY);
 }
 
-void move_unblocked_processes(Queue *blocked_queue, Queue *ready_queue, int current_time) {
+void move_unblocked_processes(Queue *blocked_queue, Scheduler *scheduler, int current_time) {
     QueueNode *current = blocked_queue->front;
     QueueNode *previous = NULL;
 
@@ -39,7 +40,7 @@ void move_unblocked_processes(Queue *blocked_queue, Queue *ready_queue, int curr
 
             process->blocked_until = UNBLOCKED;
             process->state = READY;
-            enqueue(ready_queue, process);
+            schedule_process(scheduler, process);
         } else {
             previous = current;
         }
@@ -96,7 +97,7 @@ static ExecutionResult replace_process_program(PCB *process, const char *filenam
 
 static ExecutionResult fork_simulated_process(PCB *parent,
                                               ProcessTable *table,
-                                              Queue *ready_queue,
+                                              Scheduler *scheduler,
                                               int current_time,
                                               int jump) {
     int child_pid = allocate_pid(table);
@@ -133,7 +134,7 @@ static ExecutionResult fork_simulated_process(PCB *parent,
         return EXEC_ERROR;
     }
 
-    enqueue(ready_queue, child);
+    schedule_process(scheduler, child);
     parent->pc = parent->pc + 1 + jump;
 
     return EXEC_OK;
@@ -141,13 +142,13 @@ static ExecutionResult fork_simulated_process(PCB *parent,
 
 ExecutionResult execute_next_instruction(CPU *cpu,
                                          ProcessTable *table,
-                                         Queue *ready_queue,
+                                         Scheduler *scheduler,
                                          Queue *blocked_queue,
                                          int current_time) {
     PCB *process = cpu->current_process;
 
     if (!process) {
-        dispatch_next_ready(cpu, ready_queue);
+        dispatch_next_ready(cpu, scheduler);
         process = cpu->current_process;
     }
 
@@ -211,9 +212,12 @@ ExecutionResult execute_next_instruction(CPU *cpu,
             // Bloqueia o processo atual e deixa a CPU livre para o proximo pronto.
             process->pc++;
             process->blocked_until = current_time + inst.arg1;
+            if (process->priority > 0)
+                process->priority--;
+            process->quantum_used = 0;
             enqueue(blocked_queue, process);
             execute_context_switch(cpu, NULL, BLOCKED);
-            dispatch_next_ready(cpu, ready_queue);
+            dispatch_next_ready(cpu, scheduler);
             return EXEC_BLOCKED;
 
         case INST_T: {
@@ -221,12 +225,12 @@ ExecutionResult execute_next_instruction(CPU *cpu,
             int pid = process->pid;
             execute_context_switch(cpu, NULL, TERMINATED);
             remove_process(table, pid, 1);
-            dispatch_next_ready(cpu, ready_queue);
+            dispatch_next_ready(cpu, scheduler);
             return EXEC_TERMINATED;
         }
 
         case INST_F:
-            return fork_simulated_process(process, table, ready_queue, current_time, inst.arg1);
+            return fork_simulated_process(process, table, scheduler, current_time, inst.arg1);
 
         case INST_R:
             // Troca o programa do processo, mas mantem pid/ppid e os tempos.

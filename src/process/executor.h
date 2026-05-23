@@ -4,6 +4,7 @@
 #include "cpu.h"
 #include "process.h"
 #include "queue.h"
+#include "scheduler.h"
 
 typedef enum {
     EXEC_OK,
@@ -14,9 +15,9 @@ typedef enum {
 
 ExecutionResult execute_next_instruction(CPU *cpu,
                                          ProcessTable *table,
-                                         Queue *ready_queue,
+                                         Scheduler *scheduler,
                                          Queue *blocked_queue,
                                          int current_time);
-void move_unblocked_processes(Queue *blocked_queue, Queue *ready_queue, int current_time);
+void move_unblocked_processes(Queue *blocked_queue, Scheduler *scheduler, int current_time);
 
 #endif
