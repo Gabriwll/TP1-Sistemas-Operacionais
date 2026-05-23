@@ -47,7 +47,7 @@ typedef struct {
 // Funções de processo
 PCB *create_process(int pid, int ppid, Program *program, int start_time);
 void destroy_process(PCB *process, int should_free_program);
-void print_process(PCB *process);
+void print_process(PCB *process, int modo_detalhado);
 
 // Funções da tabela de processos
 void initialize_process_table(ProcessTable *table);

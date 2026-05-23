@@ -3,21 +3,9 @@
 
 #include "interface.h"
 
-void print_memory_dump(PCB *process) {
-    if (!process || process->memory_size == 0) {
-        printf("  Memoria: [ vazia ou nao alocada ]\n");
-        return;
-    }
 
-    printf("  Memoria [%d posicoes]: ", process->memory_size);
-    printf("[ ");
-    for (int i = 0; i < process->memory_size; i++) {
-        printf("%d ", process->memory[i]);
-    }
-    printf("]\n");
-}
 
-void print_dashboard(int current_time, CPU *cpu, Scheduler *scheduler, Queue *blocked_queue) {
+void print_dashboard(int current_time, CPU *cpu, Scheduler *scheduler, Queue *blocked_queue, int modo_detalhado) {
     system("clear"); 
 
     printf("\n==================================================\n");
@@ -29,8 +17,7 @@ void print_dashboard(int current_time, CPU *cpu, Scheduler *scheduler, Queue *bl
 
     if (cpu->current_process) {
         printf("[ PROCESSO EM EXECUCAO ]\n");
-        print_process(cpu->current_process);
-        print_memory_dump(cpu->current_process); 
+        print_process(cpu->current_process, modo_detalhado);
     }
 
     printf("--------------------------------------------------\n");
@@ -38,13 +25,13 @@ void print_dashboard(int current_time, CPU *cpu, Scheduler *scheduler, Queue *bl
 
     if (scheduler->type == SCHED_MLFQ) {
         for (int i = 0; i < 4; i++) {
-            print_queue(&scheduler->readyQueues[i]);
+            print_queue(&scheduler->readyQueues[i], current_time, modo_detalhado);
         }
     } else {
-        print_queue(&scheduler->rrQueue);
+        print_queue(&scheduler->rrQueue, current_time, modo_detalhado);
     }
     
-    print_queue(blocked_queue);
+    print_queue(blocked_queue, current_time, modo_detalhado);
     
     printf("==================================================\n\n");
 }

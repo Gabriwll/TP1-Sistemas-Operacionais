@@ -64,26 +64,42 @@ PCB *peek_queue(Queue *queue) {
     return queue->front->process;
 }
 
-void print_queue(Queue *queue) {
+void print_queue(Queue *queue, int current_time, int modo_detalhado) {
     if (queue->name) {
-        printf("[%s] ", queue->name);
+        printf("[%s]\n", queue->name);
     } else {
-        printf("[Queue] ");
+        printf("[Fila]\n");
     }
     
     if (is_queue_empty(queue)) {
-        printf("(vazia)\n");
+        printf("  (vazia)\n");
         return;
     }
     
     QueueNode *current = queue->front;
     
     while (current) {
-        printf("P%d ", current->process->pid);
+        PCB *p = current->process;
+        if (p->state == BLOCKED) {
+            int restante = p->blocked_until - current_time;
+            if (restante < 0) restante = 0;
+            printf("  - PID: %d | Tempo restante: %d", p->pid, restante);
+        } else {
+            printf("  - PID: %d | Prioridade: %d", p->pid, p->priority);
+        }
+        
+        if (modo_detalhado) {
+            printf(" | PC: %d", p->pc);
+            if (p->memory_size > 0) {
+                printf(" | Vars: [");
+                for (int i=0; i<p->memory_size; i++) printf(" %d", p->memory[i]);
+                printf(" ]");
+            }
+        }
+        printf("\n");
+        
         current = current->next;
     }
-    
-    printf("\n");
 }
 
 void clear_queue(Queue *queue) {

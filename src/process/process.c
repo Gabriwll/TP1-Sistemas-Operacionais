@@ -62,30 +62,41 @@ void destroy_process(PCB *process, int should_free_program) {
     free(process);
 }
 
-void print_process(PCB *process) {
+void print_process(PCB *process, int modo_detalhado) {
     if (!process)
         return;
     
-    printf("PID: %d\n", process->pid);
-    printf("PPID: %d\n", process->ppid);
-    printf("PC: %d\n", process->pc);
-    printf("Priority: %d\n", process->priority);
-    printf("CPU Time: %d\n", process->cpu_time);
-    printf("Quantum Used: %d / %d\n", process->quantum_used, get_quantum_by_priority(process->priority));
-    
-    printf("State: ");
+    printf("PID: %d | PPID: %d | PC: %d | Prioridade: %d\n", 
+            process->pid, process->ppid, process->pc, process->priority);
+            
+    printf("Estado: ");
     switch (process->state) {
-        case READY:     printf("READY\n"); break;
-        case RUNNING:   printf("RUNNING\n"); break;
-        case BLOCKED:   printf("BLOCKED\n"); break;
-        case TERMINATED: printf("TERMINATED\n"); break;
+        case READY:     printf("PRONTO\n"); break;
+        case RUNNING:   printf("EXECUTANDO\n"); break;
+        case BLOCKED:   printf("BLOQUEADO"); 
+            if (process->blocked_until != UNBLOCKED) {
+                printf(" (ate tempo %d)", process->blocked_until);
+            }
+            printf("\n");
+            break;
+        case TERMINATED: printf("TERMINADO\n"); break;
     }
     
-    if (process->blocked_until != UNBLOCKED) {
-        printf("Blocked until: %d\n", process->blocked_until);
+    int total_quantum = get_quantum_by_priority(process->priority);
+    printf("Tempo CPU: %d | Quantum restante: %d (Usado: %d / %d)\n", 
+           process->cpu_time, total_quantum - process->quantum_used, process->quantum_used, total_quantum);
+           
+    if (modo_detalhado) {
+        if (process->memory_size == 0) {
+            printf("  Memoria: [ vazia ou nao alocada ]\n");
+        } else {
+            printf("  Memoria [%d posicoes]: [ ", process->memory_size);
+            for (int i = 0; i < process->memory_size; i++) {
+                printf("%d ", process->memory[i]);
+            }
+            printf("]\n");
+        }
     }
-    
-    printf("Memory size: %d\n", process->memory_size);
 }
 
 void initialize_process_table(ProcessTable *table) {
