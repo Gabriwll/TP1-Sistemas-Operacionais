@@ -10,6 +10,7 @@
 #include "process/queue.h"
 #include "process/executor.h"
 #include "process/scheduler.h"
+#include "output/interface.h"
 
 static int current_time = 0;
 static ProcessTable process_table;
@@ -37,25 +38,6 @@ static int initialize_first_process(int pipe_fd) {
 
     load_process_into_cpu(&cpu, init_process);
     return 1;
-}
-
-static void print_system_state(void) {
-    printf("\nEstado do sistema\n");
-    printf("Tempo: %d\n", current_time);
-    printf("CPU: %s\n", cpu.current_process ? "ocupada" : "ociosa");
-
-    if (cpu.current_process) {
-        print_process(cpu.current_process);
-    }
-
-    if (scheduler.type == SCHED_MLFQ) {
-        for (int i = 0; i < 4; i++)
-            print_queue(&scheduler.readyQueues[i]);
-    } else {
-        print_queue(&scheduler.rrQueue);
-    }
-    print_queue(&blocked_queue);
-    printf("\n");
 }
 
 static SchedulerType choose_scheduler(int *out_quantum) {
@@ -128,16 +110,15 @@ int main() {
                 move_unblocked_processes(&blocked_queue, &scheduler, current_time);
                 scheduler_tick(&scheduler, &cpu);
             } else if (command == 'I') {
-                print_system_state();
+                print_dashboard(current_time, &cpu, &scheduler, &blocked_queue);
             } else if (command == 'M') {
-                print_system_state();
+                print_dashboard(current_time, &cpu, &scheduler, &blocked_queue);
                 printf("[GERENCIADOR] encerrando simulacao\n");
                 break;
             }
         }
 
         close(fd[0]);
-        exit(0);
     } else {
         close(fd[0]);
 

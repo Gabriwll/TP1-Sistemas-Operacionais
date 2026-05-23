@@ -9,7 +9,9 @@ SRC = \
     process/process.c \
     process/executor.c \
     process/cpu.c \
-    process/queue.c
+    process/queue.c \
+    process/scheduler.c \
+    output/interface.c
 
 all:
 	$(CC) $(SRC) $(CFLAGS) -o $(TARGET)
