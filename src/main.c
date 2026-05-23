@@ -48,11 +48,32 @@ static void print_system_state(void) {
         print_process(cpu.current_process);
     }
 
-    for(int i=0; i<4; i++){
-        print_queue(&scheduler.readyQueues[i]);
+    if (scheduler.type == SCHED_MLFQ) {
+        for (int i = 0; i < 4; i++)
+            print_queue(&scheduler.readyQueues[i]);
+    } else {
+        print_queue(&scheduler.rrQueue);
     }
     print_queue(&blocked_queue);
     printf("\n");
+}
+
+static SchedulerType choose_scheduler(int *out_quantum) {
+    int choice;
+    printf("\nEscolha a politica de escalonamento:\n");
+    printf("  1 - MLFQ (Multi-Level Feedback Queue)\n");
+    printf("  2 - Round Robin\n");
+    printf("Opcao: ");
+    scanf("%d", &choice);
+ 
+    if (choice == 2) {
+        printf("Quantum do Round Robin (0 = usar padrao %d): ", RR_DEFAULT_QUANTUM);
+        scanf("%d", out_quantum);
+        return SCHED_RR;
+    }
+ 
+    *out_quantum = 0;
+    return SCHED_MLFQ;
 }
 
 int main() {
@@ -62,6 +83,9 @@ int main() {
         perror("pipe");
         exit(1);
     }
+
+    int rr_quantum = 0;
+    SchedulerType type = choose_scheduler(&rr_quantum);
 
     pid_t pid = fork();
 
@@ -76,7 +100,7 @@ int main() {
         initialize_process_table(&process_table);
         initialize_cpu(&cpu);
         //initialize_queue(&ready_queue, "PRONTO");
-        initialize_scheduler(&scheduler);
+        initialize_scheduler(&scheduler, type, rr_quantum);
         initialize_queue(&blocked_queue, "BLOQUEADO");
 
         if (!initialize_first_process(fd[0])) {
