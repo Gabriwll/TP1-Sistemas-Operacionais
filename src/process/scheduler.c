@@ -33,14 +33,6 @@ void schedule_process(Scheduler *scheduler, PCB *process){
 
 /* FUNÇÕES COMPLEMENTARES */
 
-int get_quantum_limit(int priority){
-    int quantums[] = {1, 2, 4, 8};
-    if(priority >= 0 && priority <= 3){
-        return quantums[priority];
-    }
-    return 1;
-}
-
 PCB* get_next_ready_process(Scheduler *scheduler){
     // é feita a busca na fila de maior prioridade para a menor, retornando o primeiro processo encontrado
     for(int i=0; i<4; i++){
@@ -70,7 +62,7 @@ void scheduler_tick(Scheduler *scheduler, CPU *cpu){
 
     // existe processo rodando na cpu
     PCB *current = cpu->current_process;
-    current->quantum_used++; //deve ser retirada na junção com a execução das instruções, mas para fins de teste é feita aqui
+    //current->quantum_used++; //deve ser retirada na junção com a execução das instruções, mas para fins de teste é feita aqui
 
     if(current->quantum_used >= get_quantum_by_priority(current->priority)){ // verifica se o processo excedeu seu quantum
         // Base da MLFQ: se excedeu, é movido para a fila de menor prioridade (a menos que já esteja na mais baixa)

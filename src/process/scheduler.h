@@ -10,8 +10,8 @@ typedef struct{
 
 void initialize_scheduler(Scheduler *scheduler);
 void schedule_process(Scheduler *scheduler, PCB *process);
+PCB* get_next_ready_process(Scheduler *scheduler);
 void scheduler_tick(Scheduler *scheduler, CPU *cpu);
-void block_current_process(Scheduler *scheduler, CPU *cpu);
 void destroy_scheduler(Scheduler *scheduler);
 
 #endif

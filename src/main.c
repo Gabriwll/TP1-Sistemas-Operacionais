@@ -9,11 +9,13 @@
 #include "process/cpu.h"
 #include "process/queue.h"
 #include "process/executor.h"
+#include "process/scheduler.h"
 
 static int current_time = 0;
 static ProcessTable process_table;
 static CPU cpu;
-static Queue ready_queue;
+//static Queue ready_queue;
+static Scheduler scheduler;
 static Queue blocked_queue;
 
 static int initialize_first_process(int pipe_fd) {
@@ -46,7 +48,9 @@ static void print_system_state(void) {
         print_process(cpu.current_process);
     }
 
-    print_queue(&ready_queue);
+    for(int i=0; i<4; i++){
+        print_queue(&scheduler.readyQueues[i]);
+    }
     print_queue(&blocked_queue);
     printf("\n");
 }
@@ -71,7 +75,8 @@ int main() {
 
         initialize_process_table(&process_table);
         initialize_cpu(&cpu);
-        initialize_queue(&ready_queue, "PRONTO");
+        //initialize_queue(&ready_queue, "PRONTO");
+        initialize_scheduler(&scheduler);
         initialize_queue(&blocked_queue, "BLOQUEADO");
 
         if (!initialize_first_process(fd[0])) {
@@ -86,7 +91,7 @@ int main() {
             if (command == 'U') {
                 ExecutionResult result = execute_next_instruction(&cpu,
                                                                  &process_table,
-                                                                 &ready_queue,
+                                                                 &scheduler,
                                                                  &blocked_queue,
                                                                  current_time);
                 if (result == EXEC_ERROR) {
@@ -96,7 +101,8 @@ int main() {
 
                 // Depois do U o relogio anda, entao ja da para acordar bloqueados.
                 current_time++;
-                move_unblocked_processes(&blocked_queue, &ready_queue, current_time);
+                move_unblocked_processes(&blocked_queue, &scheduler, current_time);
+                scheduler_tick(&scheduler, &cpu);
             } else if (command == 'I') {
                 print_system_state();
             } else if (command == 'M') {
