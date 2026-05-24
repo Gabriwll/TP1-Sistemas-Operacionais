@@ -9,7 +9,7 @@
 
 typedef enum{
     SCHED_MLFQ,
-    SCHED_RR
+    SCHED_ROUND_ROBIN
 }SchedulerType;
 
 typedef struct{

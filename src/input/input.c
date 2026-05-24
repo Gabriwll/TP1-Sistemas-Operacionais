@@ -12,8 +12,8 @@ static int is_valid_command(char c) {
 void run_input_loop(int pipe_fd) {
     char command;
     
-    while (1) {
-        printf("Digite comando (U/I/M): ");
+    while (1){
+        
         scanf(" %c", &command);
         
         if (!is_valid_command(command)) {

@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -Wextra -g
+CFLAGS = -Wall -Wextra -g -pthread
 TARGET = simulator
 
 SRC = \
@@ -12,7 +12,9 @@ SRC = \
     process/queue.c \
     process/scheduler.c \
     output/interface.c \
-    output/printer.c
+    output/printer.c \
+    threads/supervisor.c \
+    List/theadsList.c
 
 all:
 	$(CC) $(SRC) $(CFLAGS) -o $(TARGET)
