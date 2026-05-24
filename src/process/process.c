@@ -4,6 +4,14 @@
 
 #include "process.h"
 
+#define RESET   "\033[0m"
+#define BOLD    "\033[1m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define WHITE   "\033[37m"
+
 int get_quantum_by_priority(int priority) {
     switch (priority) {
         case 0: return 1;
@@ -67,35 +75,35 @@ void print_process(PCB *process, int modo_detalhado) {
     if (!process)
         return;
     
-    printf("PID: %d | PPID: %d | PC: %d | Prioridade: %d\n", 
+    printf(BOLD GREEN "PID: " RESET "%d | " BOLD GREEN "PPID: " RESET "%d | " BOLD GREEN "PC: " RESET "%d | " BOLD GREEN "Prioridade: " RESET "%d\n", 
             process->pid, process->ppid, process->pc, process->priority);
             
-    printf("Estado: ");
+    printf(BOLD GREEN "Estado: " RESET);
     switch (process->state) {
-        case READY:     printf("PRONTO\n"); break;
-        case RUNNING:   printf("EXECUTANDO\n"); break;
-        case BLOCKED:   printf("BLOQUEADO"); 
+        case READY:     printf(BOLD YELLOW "PRONTO\n" RESET); break;
+        case RUNNING:   printf(BOLD GREEN "EXECUTANDO\n" RESET); break;
+        case BLOCKED:   printf(BOLD RED "BLOQUEADO"); 
             if (process->blocked_until != UNBLOCKED) {
-                printf(" (ate tempo %d)", process->blocked_until);
+                printf(BOLD RED " (ate tempo %d)" RESET, process->blocked_until);
             }
             printf("\n");
             break;
-        case TERMINATED: printf("TERMINADO\n"); break;
+        case TERMINATED: printf(BOLD WHITE "TERMINADO\n" RESET); break;
     }
     
     int total_quantum = get_quantum_by_priority(process->priority);
-    printf("Tempo CPU: %d | Quantum restante: %d (Usado: %d / %d)\n", 
+    printf(BOLD GREEN "Tempo CPU: " RESET "%d | " BOLD GREEN "Quantum restante: " RESET "%d (Usado: %d / %d)\n", 
            process->cpu_time, total_quantum - process->quantum_used, process->quantum_used, total_quantum);
            
     if (modo_detalhado) {
         if (process->memory_size == 0) {
-            printf("  Memoria: [ vazia ou nao alocada ]\n");
+            printf(BOLD WHITE "  Memoria: [ vazia ou nao alocada ]\n" RESET);
         } else {
-            printf("  Memoria [%d posicoes]: [ ", process->memory_size);
+            printf(BOLD WHITE "  Memoria [%d posicoes]: [ " RESET, process->memory_size);
             for (int i = 0; i < process->memory_size; i++) {
-                printf("%d ", process->memory[i]);
+                printf(WHITE "%d " RESET, process->memory[i]);
             }
-            printf("]\n");
+            printf(BOLD WHITE "]\n" RESET);
         }
     }
 }
