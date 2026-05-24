@@ -114,11 +114,9 @@ int main() {
         move_unblocked_processes(&blocked_queue, &scheduler, current_time);
         scheduler_tick(&scheduler, &cpu);
       } else if (command == 'I') {
-        spawn_print_process(&print_pid, current_time, &cpu, &scheduler,
-                            &blocked_queue, modo_detalhado);
+            spawn_print_process(&print_pid, current_time, &cpu, &scheduler, &blocked_queue, modo_detalhado);
       } else if (command == 'M') {
-        spawn_print_process(&print_pid, current_time, &cpu, &scheduler,
-                            &blocked_queue, modo_detalhado);
+            spawn_print_process(&print_pid, current_time, &cpu, &scheduler, &blocked_queue, modo_detalhado);
         // Garante que a ultima impressao termine antes de fechar o programa
         if (print_pid > 0) {
           waitpid(print_pid, NULL, 0);

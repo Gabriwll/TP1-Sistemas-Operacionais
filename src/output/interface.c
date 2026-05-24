@@ -11,8 +11,7 @@
 #define BLUE "\033[34m"
 #define WHITE "\033[37m"
 
-void print_dashboard(int current_time, CPU *cpu, Scheduler *scheduler,
-                     Queue *blocked_queue, int modo_detalhado) {
+void print_dashboard(int current_time, CPU *cpu, Scheduler *scheduler, Queue *blocked_queue, int modo_detalhado) {
     system("clear");
 
     printf(BOLD WHITE "\n==================================================\n" RESET);
