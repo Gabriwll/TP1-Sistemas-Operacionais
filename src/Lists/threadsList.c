@@ -1,4 +1,4 @@
-#include "./list.h"
+#include "./threadsList.h"
 
 List initializeList() {
     List list;
@@ -42,6 +42,34 @@ void append(List* list, type item){
     }
 
     list->size++;
+}
+
+/*como vai funcionar, vai percorrer a lista de threads até achar a posição dada, e realocar as threads ja existentes
+e inserir a nova na posição certa*/
+
+void insertIntoPos(List* list, type item, int pos){ 
+    Cell * newCell = initializeCell(item);// cria a nova cell já com o item
+    Cell* current = list->begin;
+    Cell* previous = NULL;
+
+    for(int i = 0; i < pos && current; i++){
+        previous = current;
+        current = currentt -> next;
+    }
+    
+    //encaixa a nova cell entre previous  e current
+    newCell->next = current;
+
+    if(!previous){
+        list->begin = newCell;//insere no inicio
+    }else{
+        previous->next = newCell;
+    }
+
+    if(!current) list->last = newCell;//insere final
+    list->size++;
+
+    return newCell;
 }
 
 int editContent(List* list, type target, type value){

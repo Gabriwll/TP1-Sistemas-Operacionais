@@ -4,10 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "../process/Thread/supervisor.h"
+
 typedef struct List List;
 typedef struct Cell Cell;
 
-typedef int type;
+typedef Thread type;
 
 
 typedef struct List{
@@ -28,6 +30,7 @@ Cell* initializeCell(type item);
 Cell* getCell(List* list, type target);
 
 void append(List* list, type item);
+void insertIntoPos(List* list, type item, int pos);
 int editContent(List* list, type target, type value);
 int removeCell(List* list, Cell* target);
 void destroyList(List* list);
