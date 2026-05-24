@@ -126,7 +126,7 @@ int main() {
                 // Depois do U o relogio anda, entao ja da para acordar bloqueados.
                 current_time++;
                 move_unblocked_processes(&blocked_queue, &scheduler, current_time);
-                scheduler_tick(&scheduler, &cpu);
+                scheduler_tick(&scheduler, &cpu, &process_table);
             } else if (command == 'I') {
                 print_system_state();
             } else if (command == 'M') {

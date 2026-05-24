@@ -8,11 +8,11 @@ static int ensure_memory_index(PCB *process, int index) {
     return process && index >= 0 && index < process->memory_size;
 }
 
-static void dispatch_next_ready(CPU *cpu, Scheduler *scheduler) {
+static void dispatch_next_ready(CPU *cpu, Scheduler *scheduler, ProcessTable *table) {
     //PCB *next = dequeue(ready_queue);
     PCB *next = get_next_ready_process(scheduler);
 
-    execute_context_switch(cpu, next, READY);
+    execute_context_switch(cpu, next, READY, table);
 }
 
 void move_unblocked_processes(Queue *blocked_queue, Scheduler *scheduler, int current_time) {
@@ -148,7 +148,7 @@ ExecutionResult execute_next_instruction(CPU *cpu,
     PCB *process = cpu->current_process;
 
     if (!process) {
-        dispatch_next_ready(cpu, scheduler);
+        dispatch_next_ready(cpu, scheduler, table);
         process = cpu->current_process;
     }
 
@@ -216,16 +216,16 @@ ExecutionResult execute_next_instruction(CPU *cpu,
                 process->priority--;
             process->quantum_used = 0;
             enqueue(blocked_queue, process);
-            execute_context_switch(cpu, NULL, BLOCKED);
-            dispatch_next_ready(cpu, scheduler);
+            execute_context_switch(cpu, NULL, BLOCKED, table);
+            dispatch_next_ready(cpu, scheduler, table);
             return EXEC_BLOCKED;
 
         case INST_T: {
             // Processo terminou: sai da tabela e nao volta para nenhuma fila.
             int pid = process->pid;
-            execute_context_switch(cpu, NULL, TERMINATED);
+            execute_context_switch(cpu, NULL, TERMINATED, table);
             remove_process(table, pid, 1);
-            dispatch_next_ready(cpu, scheduler);
+            dispatch_next_ready(cpu, scheduler, table);
             return EXEC_TERMINATED;
         }
 

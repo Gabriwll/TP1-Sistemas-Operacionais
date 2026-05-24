@@ -26,7 +26,7 @@ typedef struct{
 void initialize_scheduler(Scheduler *scheduler, SchedulerType type, int rr_quantum);
 void schedule_process(Scheduler *scheduler, PCB *process);
 PCB* get_next_ready_process(Scheduler *scheduler);
-void scheduler_tick(Scheduler *scheduler, CPU *cpu);
+void scheduler_tick(Scheduler *scheduler, CPU *cpu, ProcessTable *table);
 void destroy_scheduler(Scheduler *scheduler);
 
 #endif
