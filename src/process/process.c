@@ -39,6 +39,7 @@ PCB *create_process(int pid, int ppid, Program *program, int start_time) {
     process->cpu_time = 0;
     
     process->blocked_until = UNBLOCKED;
+    process->first_run_time = -1;
     
     return process;
 }
@@ -103,6 +104,8 @@ void initialize_process_table(ProcessTable *table) {
     table->size = 0;
     table->next_pid = 0;
     table->free_count = 0;
+    table->total_response_time = 0;
+    table->response_time_count = 0;
     
     for (int i = 0; i < MAX_PROCESSES; i++) {
         table->table[i] = NULL;

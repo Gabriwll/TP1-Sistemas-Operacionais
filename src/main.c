@@ -123,6 +123,13 @@ int main() {
         if (print_pid > 0) {
           waitpid(print_pid, NULL, 0);
         }
+        
+        float avg_response = 0.0;
+        if (process_table.response_time_count > 0) {
+            avg_response = (float)process_table.total_response_time / process_table.response_time_count;
+        }
+        printf("\n[ESTATISTICAS]\nTempo medio de resposta: %.2f unidades de tempo\n", avg_response);
+        
         printf("[GERENCIADOR] encerrando simulacao\n");
         break;
       }

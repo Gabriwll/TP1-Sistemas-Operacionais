@@ -34,6 +34,7 @@ typedef struct PCB {
     int cpu_time;                   // tempo total de CPU usado
     
     int blocked_until;              // tempo em que desbloqueia (UNBLOCKED se não bloqueado)
+    int first_run_time;             // tempo em que executou pela primeira vez (-1 se nunca)
 } PCB;
 
 typedef struct {
@@ -42,6 +43,8 @@ typedef struct {
     int next_pid;
     int free_pids[MAX_PROCESSES];   // bitmap de PIDs livres
     int free_count;
+    int total_response_time;        // soma dos tempos de resposta
+    int response_time_count;        // número de processos contados
 } ProcessTable;
 
 // Funções de processo
