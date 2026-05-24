@@ -157,6 +157,13 @@ ExecutionResult execute_next_instruction(CPU *cpu,
         return EXEC_OK;
     }
 
+    // Calcula tempo de resposta na primeira execução
+    if (process->first_run_time == -1) {
+        process->first_run_time = current_time;
+        table->total_response_time += (current_time - process->start_time);
+        table->response_time_count++;
+    }
+
     if (!process->program || process->pc < 0 || process->pc >= process->program->size) {
         fprintf(stderr, "Processo %d sem instrucao valida no PC %d\n", process->pid, process->pc);
         return EXEC_ERROR;

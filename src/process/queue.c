@@ -3,6 +3,15 @@
 #include <string.h>
 
 #include "queue.h"
+#include <string.h>
+
+#define RESET   "\033[0m"
+#define BOLD    "\033[1m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define WHITE   "\033[37m"
 
 void initialize_queue(Queue *queue, const char *name) {
     queue->front = NULL;
@@ -64,26 +73,48 @@ PCB *peek_queue(Queue *queue) {
     return queue->front->process;
 }
 
-void print_queue(Queue *queue) {
+void print_queue(Queue *queue, int current_time, int modo_detalhado) {
+    int is_blocked = (queue->name && strcmp(queue->name, "BLOQUEADO") == 0);
+    
     if (queue->name) {
-        printf("[%s] ", queue->name);
+        if (is_blocked) {
+            printf(BOLD RED "[%s]\n" RESET, queue->name);
+        } else {
+            printf(BOLD BLUE "[%s]\n" RESET, queue->name);
+        }
     } else {
-        printf("[Queue] ");
+        printf(BOLD BLUE "[Fila]\n" RESET);
     }
     
     if (is_queue_empty(queue)) {
-        printf("(vazia)\n");
+        printf(BOLD WHITE "  (vazia)\n" RESET);
         return;
     }
     
     QueueNode *current = queue->front;
     
     while (current) {
-        printf("P%d ", current->process->pid);
+        PCB *p = current->process;
+        if (p->state == BLOCKED) {
+            int restante = p->blocked_until - current_time;
+            if (restante < 0) restante = 0;
+            printf(BOLD RED "  - PID: %d | Tempo restante: %d" RESET, p->pid, restante);
+        } else {
+            printf(BOLD BLUE "  - PID: %d | Prioridade: %d" RESET, p->pid, p->priority);
+        }
+        
+        if (modo_detalhado) {
+            printf(BOLD WHITE " | PC: %d" RESET, p->pc);
+            if (p->memory_size > 0) {
+                printf(BOLD WHITE " | Vars: [" RESET);
+                for (int i=0; i<p->memory_size; i++) printf(" %d", p->memory[i]);
+                printf(BOLD WHITE " ]" RESET);
+            }
+        }
+        printf("\n");
+        
         current = current->next;
     }
-    
-    printf("\n");
 }
 
 void clear_queue(Queue *queue) {
