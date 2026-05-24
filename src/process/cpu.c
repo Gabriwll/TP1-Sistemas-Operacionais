@@ -37,25 +37,38 @@ void clear_cpu(CPU *cpu) {
     }
 }
 
-void execute_context_switch(CPU *cpu, PCB *nextProcess, ProcessState reasonState){
+void execute_context_switch(CPU *cpu, PCB *nextProcess, ProcessState reasonState, ProcessTable *table){
     // Função independente para utilização de troca de contexto para o escalonador
+    // Realiza a troca de contexto, utilizando a tabela de processos para atualizar os estados dos processos envolvidos.
 
     if(cpu == NULL)
         return;
     
-    // Salvar estado do processo atual
+    // Salva o estado do processo atual, se houver, e atualiza seu estado de acordo com a razão da troca.
     if(cpu->current_process != NULL){
-        cpu->current_process->quantum_used = 0;
+        int pid = cpu->current_process->pid;
+        PCB *entry = get_process(table, pid); // Busca o processo na tabela para atualizar seu estado
 
-        // Modifica estado para motivo determinado pelo escalonador (Ready OU Blocked)
-        cpu->current_process->state = reasonState;
-
+        if(entry != NULL){
+            if(reasonState != TERMINATED){
+                // Se o processo não terminou, atualiza seu estado e reseta o quantum usado.
+                entry->quantum_used = 0;
+                entry->state = reasonState;
+            } else{
+                // Se o processo terminou marca como TERMINATED.    
+                entry->state = TERMINATED;
+            }
+        }
         cpu->current_process = NULL;
     }
 
-    // Copia estado do escalonado para cpu
+    // Se houver um próximo processo para rodar, atualiza o estado e aponta a CPU para ele.
     if(nextProcess != NULL){
-        cpu->current_process = nextProcess;
-        nextProcess->state = RUNNING;
+        PCB *entry = get_process(table, nextProcess->pid);
+
+        if(entry != NULL){
+            entry->state = RUNNING;
+            cpu->current_process = entry;
+        }
     }
 }

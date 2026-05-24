@@ -21,7 +21,7 @@ PCB* get_next_ready_process(Scheduler *scheduler){
 }
 
 // implementação da lógica base do MLFQ
-void mlfq_tick(Scheduler *scheduler, CPU *cpu){
+void mlfq_tick(Scheduler *scheduler, CPU *cpu, ProcessTable *table){
     // aqui é feita a lógica principal do escalonamento, que representa o avanço do tempo. 
     // A cada tick, o escalonador verifica se o processo atual excedeu seu quantum e, se sim, 
     // move-o para a fila de menor prioridade e seleciona o próximo processo para execução.
@@ -46,7 +46,7 @@ void mlfq_tick(Scheduler *scheduler, CPU *cpu){
     PCB *next = get_next_ready_process(scheduler);
 
     if(next != NULL){
-        execute_context_switch(cpu, next, READY);
+        execute_context_switch(cpu, next, READY, table);
         schedule_process(scheduler, current);
     } else{
         // Se não tem outro processo para rodar, o processo atual continua, mas seu quantum é resetado
@@ -55,7 +55,7 @@ void mlfq_tick(Scheduler *scheduler, CPU *cpu){
 }
 
 // implementação da lógica base do RR
-void rr_tick(Scheduler *scheduler, CPU *cpu){
+void rr_tick(Scheduler *scheduler, CPU *cpu, ProcessTable *table){
     // existe processo rodando na cpu
     PCB *current = cpu->current_process;
 
@@ -68,7 +68,7 @@ void rr_tick(Scheduler *scheduler, CPU *cpu){
     PCB *next = get_next_ready_process(scheduler);
 
     if(next != NULL){
-        execute_context_switch(cpu, next, READY);
+        execute_context_switch(cpu, next, READY, table);
         schedule_process(scheduler, current);
     } else{
         // Se não tem outro processo para rodar, o processo atual continua, mas seu quantum é resetado
@@ -125,7 +125,7 @@ void schedule_process(Scheduler *scheduler, PCB *process){
     
 }
 
-void scheduler_tick(Scheduler *scheduler, CPU *cpu){
+void scheduler_tick(Scheduler *scheduler, CPU *cpu, ProcessTable *table){
     if(scheduler == NULL || cpu == NULL)
         return;
     
@@ -134,15 +134,15 @@ void scheduler_tick(Scheduler *scheduler, CPU *cpu){
         PCB *next = get_next_ready_process(scheduler);
         if(next != NULL){
             // troca de contexto para o próximo processo
-            execute_context_switch(cpu, next, RUNNING);
+            execute_context_switch(cpu, next, RUNNING, table);
         }
         return;
     }
 
     if(scheduler->type == SCHED_MLFQ)
-        mlfq_tick(scheduler, cpu);
+        mlfq_tick(scheduler, cpu, table);
     else
-        rr_tick(scheduler, cpu);
+        rr_tick(scheduler, cpu, table);
 
 }
 

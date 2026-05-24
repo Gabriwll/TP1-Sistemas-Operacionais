@@ -109,19 +109,33 @@ int main() {
           break;
         }
 
-        // Depois do U o relogio anda, entao ja da para acordar bloqueados.
-        current_time++;
-        move_unblocked_processes(&blocked_queue, &scheduler, current_time);
-        scheduler_tick(&scheduler, &cpu);
-      } else if (command == 'I') {
-        spawn_print_process(&print_pid, current_time, &cpu, &scheduler,
-                            &blocked_queue, modo_detalhado);
-      } else if (command == 'M') {
-        spawn_print_process(&print_pid, current_time, &cpu, &scheduler,
-                            &blocked_queue, modo_detalhado);
-        // Garante que a ultima impressao termine antes de fechar o programa
-        if (print_pid > 0) {
-          waitpid(print_pid, NULL, 0);
+        char command;
+
+        while (read(fd[0], &command, sizeof(char)) > 0) {
+            printf("[GERENCIADOR] recebeu comando: %c (tempo=%d)\n", command, current_time);
+
+            if (command == 'U') {
+                ExecutionResult result = execute_next_instruction(&cpu,
+                                                                 &process_table,
+                                                                 &scheduler,
+                                                                 &blocked_queue,
+                                                                 current_time);
+                if (result == EXEC_ERROR) {
+                    fprintf(stderr, "[GERENCIADOR] erro ao executar instrucao\n");
+                    break;
+                }
+
+                // Depois do U o relogio anda, entao ja da para acordar bloqueados.
+                current_time++;
+                move_unblocked_processes(&blocked_queue, &scheduler, current_time);
+                scheduler_tick(&scheduler, &cpu, &process_table);
+            } else if (command == 'I') {
+                print_system_state();
+            } else if (command == 'M') {
+                print_system_state();
+                printf("[GERENCIADOR] encerrando simulacao\n");
+                break;
+            }
         }
         
         float avg_response = 0.0;
