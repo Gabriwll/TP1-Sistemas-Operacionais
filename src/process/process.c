@@ -4,6 +4,14 @@
 
 #include "process.h"
 
+#define RESET   "\033[0m"
+#define BOLD    "\033[1m"
+#define RED     "\033[31m"
+#define GREEN   "\033[32m"
+#define YELLOW  "\033[33m"
+#define BLUE    "\033[34m"
+#define WHITE   "\033[37m"
+
 int get_quantum_by_priority(int priority) {
     switch (priority) {
         case 0: return 1;
@@ -39,6 +47,7 @@ PCB *create_process(int pid, int ppid, Program *program, int start_time) {
     process->cpu_time = 0;
     
     process->blocked_until = UNBLOCKED;
+    process->first_run_time = -1;
     
     return process;
 }
@@ -62,36 +71,49 @@ void destroy_process(PCB *process, int should_free_program) {
     free(process);
 }
 
-void print_process(PCB *process) {
+void print_process(PCB *process, int modo_detalhado) {
     if (!process)
         return;
     
-    printf("PID: %d\n", process->pid);
-    printf("PPID: %d\n", process->ppid);
-    printf("PC: %d\n", process->pc);
-    printf("Priority: %d\n", process->priority);
-    printf("CPU Time: %d\n", process->cpu_time);
-    printf("Quantum Used: %d / %d\n", process->quantum_used, get_quantum_by_priority(process->priority));
-    
-    printf("State: ");
+    printf(BOLD GREEN "PID: " RESET "%d | " BOLD GREEN "PPID: " RESET "%d | " BOLD GREEN "PC: " RESET "%d | " BOLD GREEN "Prioridade: " RESET "%d\n", 
+            process->pid, process->ppid, process->pc, process->priority);
+            
+    printf(BOLD GREEN "Estado: " RESET);
     switch (process->state) {
-        case READY:     printf("READY\n"); break;
-        case RUNNING:   printf("RUNNING\n"); break;
-        case BLOCKED:   printf("BLOCKED\n"); break;
-        case TERMINATED: printf("TERMINATED\n"); break;
+        case READY:     printf(BOLD YELLOW "PRONTO\n" RESET); break;
+        case RUNNING:   printf(BOLD GREEN "EXECUTANDO\n" RESET); break;
+        case BLOCKED:   printf(BOLD RED "BLOQUEADO"); 
+            if (process->blocked_until != UNBLOCKED) {
+                printf(BOLD RED " (ate tempo %d)" RESET, process->blocked_until);
+            }
+            printf("\n");
+            break;
+        case TERMINATED: printf(BOLD WHITE "TERMINADO\n" RESET); break;
     }
     
-    if (process->blocked_until != UNBLOCKED) {
-        printf("Blocked until: %d\n", process->blocked_until);
+    int total_quantum = get_quantum_by_priority(process->priority);
+    printf(BOLD GREEN "Tempo CPU: " RESET "%d | " BOLD GREEN "Quantum restante: " RESET "%d (Usado: %d / %d)\n", 
+           process->cpu_time, total_quantum - process->quantum_used, process->quantum_used, total_quantum);
+           
+    if (modo_detalhado) {
+        if (process->memory_size == 0) {
+            printf(BOLD WHITE "  Memoria: [ vazia ou nao alocada ]\n" RESET);
+        } else {
+            printf(BOLD WHITE "  Memoria [%d posicoes]: [ " RESET, process->memory_size);
+            for (int i = 0; i < process->memory_size; i++) {
+                printf(WHITE "%d " RESET, process->memory[i]);
+            }
+            printf(BOLD WHITE "]\n" RESET);
+        }
     }
-    
-    printf("Memory size: %d\n", process->memory_size);
 }
 
 void initialize_process_table(ProcessTable *table) {
     table->size = 0;
     table->next_pid = 0;
     table->free_count = 0;
+    table->total_response_time = 0;
+    table->response_time_count = 0;
     
     for (int i = 0; i < MAX_PROCESSES; i++) {
         table->table[i] = NULL;
